@@ -235,8 +235,6 @@ void ProblemGenerator(MeshBlock *pmb, ParameterInput *pin) {
         }
       }
     }
-    // copy initialized vars to device
-    u_dev.DeepCopy(u);
   }
 
   //--- iprob=5. Uniform stream with density ratio "drat" located in region -1/4<y<1/4
@@ -267,6 +265,8 @@ void ProblemGenerator(MeshBlock *pmb, ParameterInput *pin) {
       }
     }
   }
+  // copy initialized vars to device
+  u_dev.DeepCopy(u);
 }
 
 } // namespace kh

@@ -113,8 +113,15 @@ TaskCollection HydroDriver::MakeTaskCollection(BlockList_t &blocks, int stage) {
     // update ghost cells
     auto send =
         tl.AddTask(update, parthenon::cell_centered_bvars::SendBoundaryBuffers, mu0);
+  }
+
+  TaskRegion &recv_region = tc.AddRegion(num_partitions);
+  for (int i = 0; i < num_partitions; i++) {
+    auto &tl = recv_region[i];
+
+    auto &mu0 = pmesh->mesh_data.GetOrAdd("base", i);
     auto recv =
-        tl.AddTask(send, parthenon::cell_centered_bvars::ReceiveBoundaryBuffers, mu0);
+        tl.AddTask(none, parthenon::cell_centered_bvars::ReceiveBoundaryBuffers, mu0);
     auto fill_from_bufs =
         tl.AddTask(recv, parthenon::cell_centered_bvars::SetBoundaries, mu0);
   }
