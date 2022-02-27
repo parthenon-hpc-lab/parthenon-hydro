@@ -1,0 +1,65 @@
+# AthenaPK - a performance portable block structured AMR MHD code
+# Copyright (c) 2020, Athena Parthenon Collaboration. All rights reserved.
+# Licensed under the BSD 3-Clause License (the "LICENSE");
+
+<comment>
+problem = spherical blast wave
+
+<job>
+problem_id = blast
+
+<parthenon/mesh>
+refinement = adaptive
+numlevel = 3
+nghost = 2
+
+nx1 = 128
+x1min = -0.5
+x1max = 0.5
+ix1_bc = periodic
+ox1_bc = periodic
+
+nx2 = 128
+x2min = -0.5
+x2max = 0.5
+ix2_bc = periodic
+ox2_bc = periodic
+
+nx3 = 128
+x3min = -0.5
+x3max = 0.5
+ix3_bc = periodic
+ox3_bc = periodic
+
+<parthenon/meshblock>
+nx1=16
+nx2=16
+nx3=16
+
+<parthenon/time>
+integrator = vl2
+cfl = 0.3
+tlim = 0.10
+nlim = 100000
+perf_cycle_offset = 2 # number of inital cycles not to be included in perf calc
+ncycle_out_mesh = -100
+
+<hydro>
+gamma = 1.666666666666667 # gamma = C_p/C_v
+
+<refinement>
+type                         = pressure_gradient
+threshold_pressure_gradient  = 0.1
+
+<problem>
+pamb       = 0.001      # ambient pressure
+prat       = 1.6e8      # Pressure ratio initially
+radius_outer  = 0.10000 # Radius of the outer sphere
+radius_inner  = 0.00000 # Radius of the inter sphere (with ramp between inner and outer sphere)
+damb       = 1.0        # ambient density
+drat       = 1.0        # density ratio in sphere
+
+<parthenon/output0>
+file_type = hdf5
+dt = 0.01
+variables = cons
