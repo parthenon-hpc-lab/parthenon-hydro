@@ -29,7 +29,7 @@ import utils.test_case
 """ To prevent littering up imported folders with .pyc files or __pycache_ folder"""
 sys.dont_write_bytecode = True
 
-int_list = ["rk1", "rk2", "vl2"]
+int_list = ["rk2"]
 # if this is updated make sure to update the assert statements for the number of MPI ranks, too
 res_list = [16, 32, 64]  # resolution for linear convergence
 
@@ -137,8 +137,9 @@ class TestCase(utils.test_case.TestCaseAbs):
         )
 
         # quick and dirty test
-        # if data[6,4] > 1.547584e-08:
-        #    analyze_status = False
+        if data[-1,4] > 4.6e-08:
+            print("Quick and dirty error check FAILED")
+            analyze_status = False
 
         n_res = len(res_list)
         markers = "ov^<>sp*hXD"
@@ -150,8 +151,7 @@ class TestCase(utils.test_case.TestCaseAbs):
                 label=integrator,
             )
 
-        plt.plot([32, 256], [1e-6, 1e-6 / (256 / 32)], "--", label="first order")
-        plt.plot([32, 256], [2e-7, 2e-7 / (256 / 32) ** 2], "--", label="second order")
+        plt.plot([32, 128], [4e-7, 4e-7 / (128 / 32) ** 2], "--", label="second order")
 
         plt.legend()
         plt.xscale("log")
