@@ -59,6 +59,20 @@ set(PARTHENON_ENABLE_CPP17 ON CACHE BOOL "Use CPP17")
 # is fixed.
 #set(PARTHENON_DISABLE_SPARSE ON CACHE BOOL "Disable sparse (not used here)")
 
+# Temporarily also look for MPI here. Ideally, this would be handles from Parthenon
+# but the variables are not propagated upwards, e.g., the MPI_FOUND is unknown but
+# required for setting up parallel tests.
+set(ENABLE_MPI OFF)
+set(NUM_MPI_PROC_TESTING "4" CACHE STRING "Number of mpi processors to use when running tests with MPI")
+if (NOT PARTHENON_DISABLE_MPI)
+  find_package(MPI COMPONENTS CXX)
+  if (NOT MPI_FOUND)
+    message(FATAL_ERROR "MPI is required but couldn't be found. "
+    "If you want to build Parthenon without MPI, please rerun CMake with -DPARTHENON_DISABLE_MPI=ON")
+  endif()
+  set(ENABLE_MPI ON)
+endif()
+
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/parthenon/CMakeLists.txt)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/parthenon parthenon)
 else()

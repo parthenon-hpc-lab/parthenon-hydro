@@ -137,7 +137,7 @@ class TestCase(utils.test_case.TestCaseAbs):
         )
 
         # quick and dirty test
-        if data[-1,4] > 4.6e-08:
+        if data[-1,4] > 4.63e-08:
             print("Quick and dirty error check FAILED")
             analyze_status = False
 

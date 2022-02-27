@@ -62,7 +62,8 @@ jobs:
             -DCMAKE_CXX_COMPILER=g++ \
             -DCMAKE_BUILD_TYPE=Release \
             -DMACHINE_CFG=${PWD}/external/parthenon/cmake/machinecfg/GitHubActions.cmake \
-            -DMACHINE_VARIANT=host_${{ matrix.parallel }}
+            -DMACHINE_VARIANT=host_${{ matrix.parallel }} \
+            -DNUM_MPI_PROC_TESTING=2
       - name: Build
         run: |
           cmake --build builddir --parallel 2
