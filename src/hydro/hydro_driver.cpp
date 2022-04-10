@@ -110,9 +110,20 @@ TaskCollection HydroDriver::MakeTaskCollection(BlockList_t &blocks, int stage) {
         mu1.get(), integrator->gam0[stage - 1], integrator->gam1[stage - 1],
         integrator->beta[stage - 1] * integrator->dt);
 
-    // update ghost cells
-    auto send =
-        tl.AddTask(update, parthenon::cell_centered_bvars::SendBoundaryBuffers, mu0);
+    // update ghost cells for non-local blocks
+    auto send_remote =
+        tl.AddTask(update, parthenon::cell_centered_bvars::SendBoundaryBuffersSplit, mu0,
+                   parthenon::cell_centered_bvars::CommDest::remote);
+  }
+
+  // Now update the rank-local buffers while the remote ones are being transferred in the
+  // background
+  TaskRegion &region_send_local = tc.AddRegion(num_partitions);
+  for (int i = 0; i < num_partitions; i++) {
+    auto &tl = region_send_local[i];
+    auto &mu0 = pmesh->mesh_data.GetOrAdd("base", i);
+    tl.AddTask(none, parthenon::cell_centered_bvars::SendBoundaryBuffersSplit, mu0,
+               parthenon::cell_centered_bvars::CommDest::local);
   }
 
   TaskRegion &recv_region = tc.AddRegion(num_partitions);
