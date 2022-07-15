@@ -12,7 +12,7 @@
 namespace linear_wave {
 using namespace parthenon::driver::prelude;
 
-void InitUserMeshData(ParameterInput *pin);
+void InitUserMeshData(Mesh *mesh, ParameterInput *pin);
 void ProblemGenerator(MeshBlock *pmb, parthenon::ParameterInput *pin);
 void UserWorkAfterLoop(Mesh *mesh, parthenon::ParameterInput *pin,
                        parthenon::SimTime &tm);
