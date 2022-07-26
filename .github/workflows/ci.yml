@@ -23,7 +23,7 @@ jobs:
           - cxx: g++
             device: host
             cmake_build_type: Release
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     container:
       image: registry.gitlab.com/pgrete/parthenon/cuda11.4.2-mpi-hdf5
     env:
