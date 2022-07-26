@@ -95,6 +95,7 @@ jobs:
           cd builddir
           #ctest --output-on-failure -LE 'performance|regression'
           export OMPI_MCA_mpi_common_cuda_event_max=1000
+          /opt/openmpi/bin/mpiexec -n 2 --allow-run-as-root /__w/parthenon-hydro/parthenon-hydro/builddir/bin/parthenon-hydro -i /__w/parthenon-hydro/parthenon-hydro/inputs/linear_wave3d.in parthenon/mesh/nx1=32 parthenon/meshblock/nx1=16 parthenon/mesh/nx2=16 parthenon/meshblock/nx2=16 parthenon/mesh/nx3=16 parthenon/meshblock/nx3=16 parthenon/time/integrator=rk2 --kokkos-num-devices=1
           ctest --output-on-failure
           ctest -R regression_mpi_test:output_hdf5
           nsys profile --delay=5 --duration=5 --stats=true -s none -t cuda example/advection/advection-example \
