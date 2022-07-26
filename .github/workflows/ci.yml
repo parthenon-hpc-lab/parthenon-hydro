@@ -66,6 +66,41 @@ jobs:
             -DNUM_MPI_PROC_TESTING=2
       - name: Build
         run: |
-          cmake --build builddir --parallel 2
+          cmake --build builddir --parallel 5
           cd builddir
           ctest --output-on-failure
+  test-device:
+    continue-on-error: true
+    strategy:
+      matrix:
+        parallel: ['serial', 'mpi']
+    runs-on: self-hosted
+    container:
+      image: registry.gitlab.com/pgrete/parthenon/cuda11.4.2-mpi-hdf5
+    env:
+      CMAKE_GENERATOR: Ninja
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
+      - name: CMake
+        run: |
+          cmake -B builddir \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DMACHINE_CFG=${PWD}/cmake/GitHubActions.cmake \
+            -DMACHINE_VARIANT=cuda_${{ matrix.parallel }}
+      - name: Build
+        run: |
+          cmake --build builddir --parallel 5
+          cd builddir
+          ctest --output-on-failure -LE 'performance|regression'
+          export OMPI_MCA_mpi_common_cuda_event_max=1000
+          ctest -R regression_mpi_test:output_hdf5
+          nsys profile --delay=5 --duration=5 --stats=true -s none -t cuda example/advection/advection-example \
+            -i ../tst/regression/test_suites/advection_performance/parthinput.advection_performance \
+            parthenon/mesh/nx1=128 parthenon/mesh/nx2=128  parthenon/mesh/nx3=128 \
+            parthenon/meshblock/nx1=64 parthenon/meshblock/nx2=64 parthenon/meshblock/nx3=64 \
+            parthenon/sparse/enable_sparse=false parthenon/time/nlim=2000 parthenon/time/tlim=2 |& tee profile.txt
+          test $(grep HtoD profile.txt |wc -l) == 0
+          test $(grep DtoH profile.txt |wc -l) == 0
+
