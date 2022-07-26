@@ -23,7 +23,7 @@ jobs:
           - cxx: g++
             device: host
             cmake_build_type: Release
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     container:
       image: registry.gitlab.com/pgrete/parthenon/cuda11.4.2-mpi-hdf5
     env:
@@ -47,7 +47,7 @@ jobs:
     strategy:
       matrix:
         parallel: ['serial', 'mpi']
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     container:
       image: registry.gitlab.com/pgrete/parthenon/cuda11.4.2-mpi-hdf5
     env:
