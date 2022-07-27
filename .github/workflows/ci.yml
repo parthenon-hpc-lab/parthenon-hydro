@@ -49,7 +49,7 @@ jobs:
         parallel: ['serial', 'mpi']
     runs-on: self-hosted
     container:
-      image: cuda11.3-mpi-hdf5
+      image: registry.gitlab.com/pgrete/parthenon/cuda11.3-mpi-hdf5
     env:
       CMAKE_GENERATOR: Ninja
     steps:
@@ -76,7 +76,7 @@ jobs:
         parallel: ['serial', 'mpi']
     runs-on: self-hosted
     container:
-      image: registry.gitlab.com/pgrete/parthenon/cuda11.4.2-mpi-hdf5
+      image: registry.gitlab.com/pgrete/parthenon/cuda11.3-mpi-hdf5
     env:
       CMAKE_GENERATOR: Ninja
     steps:
