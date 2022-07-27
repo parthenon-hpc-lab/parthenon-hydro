@@ -50,8 +50,6 @@ jobs:
     runs-on: self-hosted
     container:
       image: registry.gitlab.com/pgrete/parthenon/cuda11.3-mpi-hdf5
-    env:
-      CMAKE_GENERATOR: Ninja
     steps:
       - uses: actions/checkout@v2
         with:
@@ -77,8 +75,6 @@ jobs:
     runs-on: self-hosted
     container:
       image: registry.gitlab.com/pgrete/parthenon/cuda11.3-mpi-hdf5
-    env:
-      CMAKE_GENERATOR: Ninja
     steps:
       - uses: actions/checkout@v2
         with:
