@@ -20,6 +20,7 @@ jobs:
           submodules: 'true'
       - name: huhu
         run: |
+          set +e
           [ `grep -c intddfdfdd CMakeLists.txt` -eq 0 ]
           [ `grep intddfdfdd CMakeLists.txt  | wc -l` -eq 0 ]
           [ $(grep intddfdfdd CMakeLists.txt  | wc -l) -eq 0 ]
