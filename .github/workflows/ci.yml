@@ -10,6 +10,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test:
+    runs-on: self-hosted
+    container:
+      image: registry.gitlab.com/pgrete/parthenon/cuda11.3-mpi-hdf5
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
+      -name: huhu
+        run: |
+          [ $(grep intddfdfdd CMakeLists.txt  | wc -l) -eq 0 ]
+          [ $(grep project CMakeLists.txt  | wc -l) -eq 0 ]
+
   build-host:
     continue-on-error: true
     strategy:
