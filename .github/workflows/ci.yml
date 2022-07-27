@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: 'true'
-      -name: huhu
+      - name: huhu
         run: |
           [ $(grep intddfdfdd CMakeLists.txt  | wc -l) -eq 0 ]
           [ $(grep project CMakeLists.txt  | wc -l) -eq 0 ]
