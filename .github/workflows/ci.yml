@@ -21,8 +21,14 @@ jobs:
       - name: huhu
         run: |
           if ! grep project CMakeLists.txt; then exit 1; fi
+      - name: haha
+        run: |
           if ! grep projecttt CMakeLists.txt; then exit 1; fi
+      - name: hoho
+        run: |
           [ `grep -c intddfdfdd CMakeLists.txt` -eq 0 ]
+      - name: hihi
+        run: |
           [ `grep intddfdfdd CMakeLists.txt  | wc -l` -eq 0 ]
           [ $(grep intddfdfdd CMakeLists.txt  | wc -l) -eq 0 ]
           [ $(grep project CMakeLists.txt  | wc -l) -eq 0 ]
