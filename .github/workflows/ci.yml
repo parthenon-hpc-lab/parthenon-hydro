@@ -20,8 +20,8 @@ jobs:
           submodules: 'true'
       - name: huhu
         run: |
-          [ $(grep intddfdfdd CMakeLists.txt  | wc -l) -eq 0 ]
           [ $(grep project CMakeLists.txt  | wc -l) -eq 0 ]
+          [ $(grep intddfdfdd CMakeLists.txt  | wc -l) -eq 0 ]
 
   build-host:
     continue-on-error: true
