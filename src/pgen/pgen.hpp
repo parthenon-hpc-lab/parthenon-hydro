@@ -2,7 +2,7 @@
 #define PGEN_PGEN_HPP_
 //========================================================================================
 // AthenaPK - a performance portable block structured AMR astrophysical MHD code.
-// Copyright (c) 2020, Athena-Parthenon Collaboration. All rights reserved.
+// Copyright (c) 2020-2022, Athena-Parthenon Collaboration. All rights reserved.
 // Licensed under the BSD 3-Clause License (the "LICENSE").
 //========================================================================================
 
@@ -12,7 +12,7 @@
 namespace linear_wave {
 using namespace parthenon::driver::prelude;
 
-void InitUserMeshData(ParameterInput *pin);
+void InitUserMeshData(Mesh *, ParameterInput *pin);
 void ProblemGenerator(MeshBlock *pmb, parthenon::ParameterInput *pin);
 void UserWorkAfterLoop(Mesh *mesh, parthenon::ParameterInput *pin,
                        parthenon::SimTime &tm);
