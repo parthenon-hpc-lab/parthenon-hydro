@@ -34,9 +34,6 @@
 using parthenon::ParArray4D;
 using parthenon::Real;
 
-// TODO(pgrete): this needs to become an inline function
-// TODO(pgrete): fix dimension of sratch arrays
-// TODO(pgrete): the EOS should not be passed. Will be addressed when inlining
 //----------------------------------------------------------------------------------------
 //! \fn void Hydro::RiemannSolver
 //  \brief The HLLE Riemann solver for hydrodynamics (adiabatic)
