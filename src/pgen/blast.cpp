@@ -78,9 +78,9 @@ void ProblemGenerator(MeshBlock *pmb, ParameterInput *pin) {
       KOKKOS_LAMBDA(const int k, const int j, const int i) {
         Real den = da;
         Real pres = pa;
-        Real x = coords.x1v(i);
-        Real y = coords.x2v(j);
-        Real z = coords.x3v(k);
+        Real x = coords.Xc<1>(i);
+        Real y = coords.Xc<2>(j);
+        Real z = coords.Xc<3>(k);
         Real rad = std::sqrt(SQR(x - x0) + SQR(y - y0) + SQR(z - z0));
 
         if (rad < rout) {
