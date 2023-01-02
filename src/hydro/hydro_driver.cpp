@@ -1,6 +1,6 @@
 //========================================================================================
-// AthenaPK - a performance portable block structured AMR astrophysical MHD code.
-// Copyright (c) 2020-2022, Athena-Parthenon Collaboration. All rights reserved.
+// parthenon-hydro - a performance portable block-structured AMR compr. hydro miniapp
+// Copyright (c) 2020-2023, Athena-Parthenon Collaboration. All rights reserved.
 // Licensed under the BSD 3-Clause License (the "LICENSE").
 //========================================================================================
 
@@ -11,11 +11,11 @@
 #include <vector>
 
 // Parthenon header
-#include <mesh/refinement_cc_in_one.hpp>
+#include <amr_criteria/refinement_package.hpp>
 #include <parthenon/parthenon.hpp>
-#include <refinement/refinement.hpp>
+#include <prolong_restrict/prolong_restrict.hpp>
 
-// AthenaPK headers
+// parthenon-hydro headers
 #include "../eos/adiabatic_hydro.hpp"
 #include "hydro.hpp"
 #include "hydro_driver.hpp"
@@ -98,41 +98,11 @@ TaskCollection HydroDriver::MakeTaskCollection(BlockList_t &blocks, int stage) {
         mu1.get(), integrator->gam0[stage - 1], integrator->gam1[stage - 1],
         integrator->beta[stage - 1] * integrator->dt);
 
-    // Note the difference between local and non-local buffers.
-    // The best performing (at scale) combination/order is still tbd.
-    // update ghost cells (non local)
-    const auto nonlocal = parthenon::BoundaryType::nonlocal;
-    auto send_nonlocal =
-        tl.AddTask(update, parthenon::cell_centered_bvars::SendBoundBufs<nonlocal>, mu0);
-  }
-
-  TaskRegion &sendrecv_region = tc.AddRegion(num_partitions);
-  for (int i = 0; i < num_partitions; i++) {
-    auto &tl = sendrecv_region[i];
-
-    auto &mu0 = pmesh->mesh_data.GetOrAdd("base", i);
-
-    // update ghost cells (local)
-    const auto local = parthenon::BoundaryType::local;
-    auto send_local =
-        tl.AddTask(none, parthenon::cell_centered_bvars::SendBoundBufs<local>, mu0);
-    auto recv_local =
-        tl.AddTask(none, parthenon::cell_centered_bvars::ReceiveBoundBufs<local>, mu0);
-    auto set_local =
-        tl.AddTask(recv_local, parthenon::cell_centered_bvars::SetBounds<local>, mu0);
-
-    // update ghost cells (non-local buffers) hoping that messages arrived while the local
-    // buffer were handled
-    const auto nonlocal = parthenon::BoundaryType::nonlocal;
-    auto recv_nonlocal =
-        tl.AddTask(none, parthenon::cell_centered_bvars::ReceiveBoundBufs<nonlocal>, mu0);
-    auto set_nonlocal = tl.AddTask(
-        recv_nonlocal, parthenon::cell_centered_bvars::SetBounds<nonlocal>, mu0);
-
-    if (pmesh->multilevel) {
-      tl.AddTask(set_nonlocal | set_local,
-                 parthenon::cell_centered_refinement::RestrictPhysicalBounds, mu0.get());
-    }
+    // Update ghost cells (local and non local)
+    // Note that Parthenon also support to add those tasks manually for more fine-grained
+    // control.
+    parthenon::cell_centered_bvars::AddBoundaryExchangeTasks(update, tl, mu0,
+                                                             pmesh->multilevel);
   }
 
   TaskRegion &async_region_3 = tc.AddRegion(num_task_lists_executed_independently);
