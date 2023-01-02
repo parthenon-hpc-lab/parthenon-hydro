@@ -23,7 +23,7 @@ enum {
   NHYDRO = 5,
 };
 
-// array indices for 1D primitives: velocity, transverse components of field
+// array indices for 1D primitives: velocity and pressure
 enum { IV1 = 1, IV2 = 2, IV3 = 3, IPR = 4 };
 
 enum class Hst { idx, ekin };
