@@ -67,12 +67,12 @@ Real HydroHst(MeshData<Real> *md) {
         const auto &coords = cons_pack.GetCoords(b);
 
         if (hst == Hst::idx) {
-          lsum += cons(idx, k, j, i) * coords.Volume(k, j, i);
+          lsum += cons(idx, k, j, i) * coords.CellVolume(k, j, i);
         } else if (hst == Hst::ekin) {
           lsum += 0.5 / cons(IDN, k, j, i) *
                   (SQR(cons(IM1, k, j, i)) + SQR(cons(IM2, k, j, i)) +
                    SQR(cons(IM3, k, j, i))) *
-                  coords.Volume(k, j, i);
+                  coords.CellVolume(k, j, i);
         }
       },
       sum);
@@ -227,15 +227,12 @@ Real EstimateTimestep(MeshData<Real> *md) {
         lambda_max_y = lambda_max_x;
         lambda_max_z = lambda_max_x;
 
-        min_dt = fmin(min_dt, coords.Dx(parthenon::X1DIR, k, j, i) /
-                                  (fabs(w[IV1]) + lambda_max_x));
+        min_dt = fmin(min_dt, coords.Dxc<1>(k, j, i) / (fabs(w[IV1]) + lambda_max_x));
         if (nx2) {
-          min_dt = fmin(min_dt, coords.Dx(parthenon::X2DIR, k, j, i) /
-                                    (fabs(w[IV2]) + lambda_max_y));
+          min_dt = fmin(min_dt, coords.Dxc<2>(k, j, i) / (fabs(w[IV2]) + lambda_max_y));
         }
         if (nx3) {
-          min_dt = fmin(min_dt, coords.Dx(parthenon::X3DIR, k, j, i) /
-                                    (fabs(w[IV3]) + lambda_max_z));
+          min_dt = fmin(min_dt, coords.Dxc<3>(k, j, i) / (fabs(w[IV3]) + lambda_max_z));
         }
       },
       Kokkos::Min<Real>(min_dt_hyperbolic));
