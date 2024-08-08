@@ -77,19 +77,16 @@ TaskCollection HydroDriver::MakeTaskCollection(BlockList_t &blocks, int stage) {
     auto &tl = single_tasklist_per_pack_region[i];
     auto &mu0 = pmesh->mesh_data.GetOrAdd("base", i);
     const auto any = parthenon::BoundaryType::any;
-    tl.AddTask(none, parthenon::cell_centered_bvars::StartReceiveBoundBufs<any>, mu0);
-    tl.AddTask(none, parthenon::cell_centered_bvars::StartReceiveFluxCorrections, mu0);
+    tl.AddTask(none, parthenon::StartReceiveBoundBufs<any>, mu0);
+    tl.AddTask(none, parthenon::StartReceiveFluxCorrections, mu0);
 
     // Calculate fluxes (will be stored in the x1, x2, x3 flux arrays of each var)
     auto calc_flux = tl.AddTask(none, CalculateFluxes, mu0);
 
     // Correct for fluxes across levels (to maintain conservative nature of update)
-    auto send_flx = tl.AddTask(
-        calc_flux, parthenon::cell_centered_bvars::LoadAndSendFluxCorrections, mu0);
-    auto recv_flx = tl.AddTask(
-        calc_flux, parthenon::cell_centered_bvars::ReceiveFluxCorrections, mu0);
-    auto set_flx =
-        tl.AddTask(recv_flx, parthenon::cell_centered_bvars::SetFluxCorrections, mu0);
+    auto send_flx = tl.AddTask(calc_flux, parthenon::LoadAndSendFluxCorrections, mu0);
+    auto recv_flx = tl.AddTask(calc_flux, parthenon::ReceiveFluxCorrections, mu0);
+    auto set_flx = tl.AddTask(recv_flx, parthenon::SetFluxCorrections, mu0);
 
     auto &mu1 = pmesh->mesh_data.GetOrAdd("u1", i);
     // Compute the divergence of fluxes of conserved variables
@@ -101,8 +98,7 @@ TaskCollection HydroDriver::MakeTaskCollection(BlockList_t &blocks, int stage) {
     // Update ghost cells (local and non local)
     // Note that Parthenon also support to add those tasks manually for more fine-grained
     // control.
-    parthenon::cell_centered_bvars::AddBoundaryExchangeTasks(update, tl, mu0,
-                                                             pmesh->multilevel);
+    parthenon::AddBoundaryExchangeTasks(update, tl, mu0, pmesh->multilevel);
   }
 
   TaskRegion &async_region_3 = tc.AddRegion(num_task_lists_executed_independently);
@@ -110,9 +106,11 @@ TaskCollection HydroDriver::MakeTaskCollection(BlockList_t &blocks, int stage) {
     auto &tl = async_region_3[i];
     auto &u0 = blocks[i]->meshblock_data.Get("base");
     auto prolongBound = none;
-    if (pmesh->multilevel) {
-      prolongBound = tl.AddTask(none, parthenon::ProlongateBoundaries, u0);
-    }
+    // Currently taken care of by AddBoundaryExchangeTasks above.
+    // Needs to be reintroduced once we reintroduce split (local/nonlocal) communication.
+    // if (pmesh->multilevel) {
+    //  prolongBound = tl.AddTask(none, parthenon::ProlongateBoundaries, u0);
+    // }
 
     // set physical boundaries
     auto set_bc = tl.AddTask(prolongBound, parthenon::ApplyBoundaryConditions, u0);
