@@ -21,12 +21,21 @@ enum {
   IM3 = 3,
   IEN = 4,
   NHYDRO = 5,
+  IB1 = 5,
+  IB2 = 6,
+  IB3 = 7,
+  IA1 = 8, // Magnetic Potential
+  IA2 = 9, // for 
+  IA3 = 10 // Unstaggered Constrained Transport
 };
 
 // array indices for 1D primitives: velocity and pressure
 enum { IV1 = 1, IV2 = 2, IV3 = 3, IPR = 4 };
 
-enum class Hst { idx, ekin };
+enum class Hst { idx, ekin, emag, divb };
+enum class Reconstruction { undefined, none, weno3, weno5 };
+enum class Integrator { undefined, rk1, rk2, vl2, rk3 };
+enum class Fluid { undefined, euler, mhd };
 
 constexpr parthenon::Real float_min{std::numeric_limits<float>::min()};
 

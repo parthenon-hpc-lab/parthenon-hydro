@@ -5,11 +5,13 @@ add_executable(
     parthenon-hydro
         main.cpp
         eos/adiabatic_hydro.cpp
+        eos/adiabatic_mhd.cpp
+        units.hpp
         hydro/hydro_driver.cpp
         hydro/hydro.cpp
-        recon/plm_simple.hpp
         refinement/gradient.cpp
         refinement/other.cpp
+        utils/few_modes_ft.cpp
 )
 
 add_subdirectory(pgen)

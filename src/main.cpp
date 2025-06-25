@@ -9,7 +9,17 @@
 // AthenaPK headers
 #include "hydro/hydro.hpp"
 #include "hydro/hydro_driver.hpp"
+#include "main.hpp"
 #include "pgen/pgen.hpp"
+
+namespace Hydro {
+InitPackageDataFun_t ProblemInitPackageData = nullptr;
+SourceFun_t ProblemSourceFirstOrder = nullptr;
+// SourceFun_t ProblemSourceStrangSplit = nullptr;
+// SourceFun_t ProblemSourceUnsplit = nullptr;
+// EstimateTimestepFun_t ProblemEstimateTimestep = nullptr;
+// std::function<AmrTag(MeshBlockData<Real> *mbd)> ProblemCheckRefinementBlock = nullptr;
+} // namespace Hydro
 
 int main(int argc, char *argv[]) {
   using parthenon::ParthenonManager;
@@ -42,6 +52,28 @@ int main(int argc, char *argv[]) {
     pman.app_input->ProblemGenerator = kh::ProblemGenerator;
   } else if (problem == "sod") {
     pman.app_input->ProblemGenerator = sod::ProblemGenerator;
+  } else if (problem == "riemann_2d") {
+    pman.app_input->ProblemGenerator = riemann_2d::ProblemGenerator;
+  } else if (problem == "brio_wu") {
+    pman.app_input->ProblemGenerator = brio_wu::ProblemGenerator;
+  } else if (problem == "orszag_tang_2d") {
+    pman.app_input->ProblemGenerator = orszag_tang_2d::ProblemGenerator;
+  } else if (problem == "orszag_tang_3d") {
+    pman.app_input->ProblemGenerator = orszag_tang_3d::ProblemGenerator;
+  } else if (problem == "turbulence") {
+    pman.app_input->MeshProblemGenerator = turbulence::ProblemGenerator;
+    Hydro::ProblemInitPackageData = turbulence::ProblemInitPackageData;
+    Hydro::ProblemSourceFirstOrder = turbulence::Driving;
+    pman.app_input->InitMeshBlockUserData = turbulence::SetPhases;
+    pman.app_input->MeshBlockUserWorkBeforeOutput = turbulence::UserWorkBeforeOutput;
+  } else if (problem == "field_loop") {
+    pman.app_input->ProblemGenerator = field_loop::ProblemGenerator;
+    Hydro::ProblemInitPackageData = field_loop::ProblemInitPackageData;
+  } else {
+    // parthenon throw error message for the invalid problem
+    std::stringstream msg;
+    msg << "Problem ID '" << problem << "' is not implemented yet.";
+    PARTHENON_THROW(msg);
   }
 
   pman.ParthenonInitPackagesAndMesh();
