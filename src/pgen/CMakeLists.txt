@@ -5,4 +5,5 @@ target_sources(parthenon-hydro PRIVATE
     linear_wave.cpp
     blast.cpp
     kh.cpp
+    sod.cpp
     )

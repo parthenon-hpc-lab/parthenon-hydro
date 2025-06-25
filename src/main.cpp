@@ -40,6 +40,8 @@ int main(int argc, char *argv[]) {
     pman.app_input->ProblemGenerator = blast::ProblemGenerator;
   } else if (problem == "kh") {
     pman.app_input->ProblemGenerator = kh::ProblemGenerator;
+  } else if (problem == "sod") {
+    pman.app_input->ProblemGenerator = sod::ProblemGenerator;
   }
 
   pman.ParthenonInitPackagesAndMesh();
