@@ -24,7 +24,7 @@ threshold_xyvelocity_gradient  = 0.001
 <parthenon/mesh>
 refinement = none
 numlevel = 3
-nghost = 2
+nghost = 3
 
 nx1 = 128
 x1min = -0.5
@@ -52,15 +52,15 @@ nx3=1
 <parthenon/time>
 integrator = vl2
 cfl = 0.4
-tlim = 10.0
+tlim = 0.1
 nlim = 100000
 perf_cycle_offset = 2 # number of inital cycles not to be included in perf calc
 ncycle_out_mesh = -1000
 
 <hydro>
+fluid = euler
+reconstruction = weno3
 eos = adiabatic
-riemann = hlle
-reconstruction = plm
 gamma = 1.666666666666667 # gamma = C_p/C_v
 scratch_level = 0 # 0 is actual scratch (tiny); 1 is HBM
 

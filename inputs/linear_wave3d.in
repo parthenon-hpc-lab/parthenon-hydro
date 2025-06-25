@@ -14,10 +14,10 @@ wave_flag = 0         # Wave family number (0 - 4 for adiabatic hydro)
 amp       = 1.0e-6    # Wave Amplitude
 vflow     = 0.0       # background flow velocity
 test      = true      # rescale sim time to full periods
-
+ 
 <parthenon/mesh>
 refinement = none
-nghost = 2
+nghost = 3
 
 nx1 = 64
 x1min = 0.0
@@ -43,17 +43,16 @@ nx2=16
 nx3=16
 
 <parthenon/time>
-integrator = vl2
-cfl = 0.3
-tlim = 2.0
+integrator = rk3
+cfl = 0.1
+tlim = 1.0
 nlim = 100000
 perf_cycle_offset = 2 # number of inital cycles not to be included in perf calc
 
 <hydro>
 fluid = euler
+reconstruction = weno3
 eos = adiabatic
-riemann = hlle
-reconstruction = plm
 gamma = 1.666666666666667 # gamma = C_p/C_v
 scratch_level = 0 # 0 is actual scratch (tiny); 1 is HBM
 

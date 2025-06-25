@@ -45,6 +45,8 @@ perf_cycle_offset = 2 # number of inital cycles not to be included in perf calc
 ncycle_out_mesh = -100
 
 <hydro>
+fluid = euler
+reconstruction = weno3
 gamma = 1.666666666666667 # gamma = C_p/C_v
 
 <refinement>

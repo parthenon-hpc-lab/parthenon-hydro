@@ -19,9 +19,9 @@ x_discont = 0.5
 
 <parthenon/mesh>
 refinement = none
-nghost = 2
+nghost = 3
 
-nx1 = 128
+nx1 = 1024
 x1min = 0.0
 x1max = 1.0
 ix1_bc = outflow
@@ -36,29 +36,29 @@ ox2_bc = periodic
 nx3 = 1
 x3min = -0.5
 x3max = 0.5
-ix2_bc = periodic
-ox2_bc = periodic
+ix3_bc = periodic
+ox3_bc = periodic
 
 <partheon/meshblock>
-nx1 = 32
+nx1 = 16
 nx2 = 1
 nx3 = 1
 
 <parthenon/output1>
 file_type = hdf5
-dt = 0.025
+dt = 0.05
 variables = prim
 
 <parthenon/time>
-integrator = rk1
+integrator = rk3
 cfl = 0.5
-tlim = 0.4
+tlim = 0.15
 nlim = 10000
 
 <hydro>
+fluid = euler
+reconstruction = weno5
 eos = adiabatic
-riemann = hlle
-reconstruction = plm
 gamma = 1.4
 
 <parthenon/Graphics>
