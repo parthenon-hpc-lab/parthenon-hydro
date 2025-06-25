@@ -1,0 +1,69 @@
+# AthenaPK - a performance portable block structured AMR MHD code
+# Copyright (c) 2021, Athena Parthenon Collaboration. All rights reserved.
+# Licensed under the BSD 3-Clause License (the "LICENSE");
+
+<comment>
+problem = 3D MHD field loop
+
+# TODO(pgrete) get rid of this leftover in Parthenon to define a basename
+<parthenon/job>
+problem_id = field_loop
+
+<job>
+problem_id = field_loop
+
+<problem/field_loop>
+rad        = 0.3       # Radius of loop
+amp        = 1.0e-3    # Amplitude of B in loop
+vflow      = 1.0       # background flow velocity (will be multipled by each coord dim)
+iprob      = 1         # 1=loop in x1-x2 plane
+
+<parthenon/mesh>
+refinement = none
+nghost = 3
+
+nx1 = 64
+x1min = -0.5
+x1max = 0.5
+ix1_bc = periodic
+ox1_bc = periodic
+
+nx2 = 64
+x2min = -0.5
+x2max = 0.5
+ix2_bc = periodic
+ox2_bc = periodic
+
+nx3 = 1
+x3min = -0.5
+x3max = 0.5
+ix3_bc = periodic
+ox3_bc = periodic
+
+<parthenon/meshblock>
+nx1 = 64
+nx2 = 64
+nx3 = 1
+
+<parthenon/time>
+integrator = rk3
+cfl = 0.3
+tlim = 1.0
+nlim = 100000
+perf_cycle_offset = 2 # number of inital cycles not to be included in perf calc
+
+<hydro>
+fluid = mhd
+eos = adiabatic
+reconstruction = weno5
+gamma = 1.666666666666667 # gamma = C_p/C_v
+
+<parthenon/output0>
+file_type = hdf5
+dt = 0.1
+id = prim_2d_v4
+variables = prim
+
+<parthenon/output1>
+file_type = hst
+dt = -0.05

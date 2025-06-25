@@ -1,0 +1,79 @@
+# AthenaPK - a performance portable block structured AMR MHD code
+# Copyright (c) 2020, Athena Parthenon Collaboration. All rights reserved.
+# Licensed under the BSD 3-Clause License (the "LICENSE");
+
+<comment>
+problem = 2D Riemann Problem
+
+<job>
+problem_id = riemann_2d
+
+<problem/riemann2d>
+rho_tr    = 1.5
+vex_tr    = 0.0
+vey_tr    = 0.0
+pre_tr    = 1.5
+rho_tl    = 0.5323
+vex_tl    = 1.206
+vey_tl    = 0.0
+pre_tl    = 0.3
+rho_bl    = 0.138
+vex_bl    = 1.206
+vey_bl    = 1.206
+pre_bl    = 0.029
+rho_br    = 0.5323
+vex_br    = 0.0
+vey_br    = 1.206
+pre_br    = 0.3
+
+x_discont = 0.5
+y_discont = 0.5
+
+<parthenon/mesh>
+refinement = none
+nghost = 3
+
+nx1 = 128
+x1min = 0.0
+x1max = 1.0
+ix1_bc = periodic
+ox1_bc = periodic
+
+nx2 = 128
+x2min = 0.0
+x2max = 1.0
+ix2_bc = periodic
+ox2_bc = periodic
+
+nx3 = 1
+x3min = -0.5
+x3max = 0.5
+ix3_bc = periodic
+ox3_bc = periodic
+
+<partheon/meshblock>
+nx1 = 128
+nx2 = 128
+nx3 = 1
+
+<parthenon/output1>
+file_type = hdf5
+dt = 0.1
+id = prim_riemann2d
+variables = prim
+
+<parthenon/time>
+integrator = rk3
+cfl = 0.1
+tlim = 0.3
+nlim = -1
+
+<hydro>
+fluid = euler
+reconstruction = weno5
+eos = adiabatic
+gamma = 1.4
+
+<parthenon/Graphics>
+variables = cons
+
