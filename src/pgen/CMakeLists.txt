@@ -6,4 +6,10 @@ target_sources(parthenon-hydro PRIVATE
     blast.cpp
     kh.cpp
     sod.cpp
+    riemann_2d.cpp
+    brio_wu.cpp
+    orszag_tang_2d.cpp
+    orszag_tang_3d.cpp
+    turbulence.cpp
+    field_loop.cpp
     )
