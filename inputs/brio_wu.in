@@ -58,10 +58,9 @@ nx3 = 1
 
 <parthenon/output1>
 file_type = hdf5
-dt = -0.05
+dt = 0.05
 variables = prim, b
-id = prim_brio_wu_og
-
+id = prim_brio_wu
 
 <parthenon/time>
 integrator = rk3

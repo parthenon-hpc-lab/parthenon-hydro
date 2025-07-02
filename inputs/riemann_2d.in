@@ -33,17 +33,17 @@ y_discont = 0.5
 refinement = none
 nghost = 3
 
-nx1 = 128
+nx1 = 1024
 x1min = 0.0
 x1max = 1.0
-ix1_bc = periodic
-ox1_bc = periodic
+ix1_bc = outflow
+ox1_bc = outflow
 
-nx2 = 128
+nx2 = 1024
 x2min = 0.0
 x2max = 1.0
-ix2_bc = periodic
-ox2_bc = periodic
+ix2_bc = outflow
+ox2_bc = outflow
 
 nx3 = 1
 x3min = -0.5
@@ -51,7 +51,7 @@ x3max = 0.5
 ix3_bc = periodic
 ox3_bc = periodic
 
-<partheon/meshblock>
+<parthenon/meshblock>
 nx1 = 128
 nx2 = 128
 nx3 = 1

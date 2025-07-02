@@ -19,28 +19,28 @@ test      = true      # rescale sim time to full periods
 refinement = none
 nghost = 3
 
-nx1 = 64
+nx1 = 512
 x1min = 0.0
 x1max = 3.0
 ix1_bc = periodic
 ox1_bc = periodic
 
-nx2 = 32
+nx2 = 512
 x2min = 0.0
 x2max = 1.5
 ix2_bc = periodic
 ox2_bc = periodic
 
-nx3 = 32
+nx3 = 512
 x3min = 0.0
 x3max = 1.5
 ix3_bc = periodic
 ox3_bc = periodic
 
 <parthenon/meshblock>
-nx1=16
-nx2=16
-nx3=16
+nx1=64
+nx2=64
+nx3=64
 
 <parthenon/time>
 integrator = rk3
@@ -58,5 +58,5 @@ scratch_level = 0 # 0 is actual scratch (tiny); 1 is HBM
 
 <parthenon/output0>
 file_type = hdf5
-dt = -0.01           # negative -> disabled
+dt = 0.1             # negative -> disabled
 variables = cons     # dump conserved variables

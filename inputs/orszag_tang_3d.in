@@ -12,33 +12,33 @@ problem_id = orszag_tang_3d
 refinement = none
 nghost = 3
 
-nx1 = 64
+nx1 = 512
 x1min = 0.0
 x1max = 6.28318530717958647692528676655900576839433879875021164194988918461563281257
 ix1_bc = periodic
 ox1_bc = periodic
 
-nx2 = 64
+nx2 = 512
 x2min = 0.0
 x2max = 6.28318530717958647692528676655900576839433879875021164194988918461563281257
 ix2_bc = periodic
 ox2_bc = periodic
 
-nx3 = 64
+nx3 = 512
 x3min = 0.0
 x3max = 6.28318530717958647692528676655900576839433879875021164194988918461563281257
 ix3_bc = periodic
 ox3_bc = periodic
 
 <parthenon/meshblock>
-nx1 = 64
-nx2 = 64
-nx3 = 64
+nx1 = 128
+nx2 = 128
+nx3 = 128
 
 <parthenon/time>
 integrator = rk3
-cfl = 0.5
-tlim = 5.0
+cfl = 0.3
+tlim = 1.0
 nlim = -1
 perf_cycle_offset = 2 # number of inital cycles not to be included in perf calc
 

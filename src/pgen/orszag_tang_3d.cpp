@@ -27,7 +27,12 @@ void ProblemGenerator(MeshBlock *pmb, ParameterInput *pin) {
   IndexRange jb = pmb->cellbounds.GetBoundsJ(IndexDomain::interior);
   IndexRange kb = pmb->cellbounds.GetBoundsK(IndexDomain::interior);
 
-  il = ib.s - 3, iu = ib.e + 3, jl = jb.s - 3, ju = jb.e + 3, kl = kb.s - 3, ku = kb.e + 3;
+  Real nghost = pin->GetOrAddReal("parthenon/mesh", "nghost", 3);
+
+  int il, iu, jl, ju, kl, ku;
+  il = ib.s - nghost, iu = ib.e + nghost;
+  jl = jb.s - nghost, ju = jb.e + nghost;
+  kl = kb.s - nghost, ku = kb.e + nghost;
 
   auto &mbd = pmb->meshblock_data.Get();
   auto &u = mbd->Get("cons").data;

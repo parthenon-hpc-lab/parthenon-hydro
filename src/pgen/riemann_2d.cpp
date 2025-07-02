@@ -15,12 +15,18 @@ namespace riemann_2d {
 using namespace parthenon::driver::prelude;
 
 void ProblemGenerator(MeshBlock *pmb, parthenon::ParameterInput *pin) {
-  // std::cout << "ProblemGenerator" << std::endl;
 
   auto hydro_pkg = pmb->packages.Get("Hydro");
   auto ib = pmb->cellbounds.GetBoundsI(IndexDomain::interior);
   auto jb = pmb->cellbounds.GetBoundsJ(IndexDomain::interior);
   auto kb = pmb->cellbounds.GetBoundsK(IndexDomain::interior);
+
+  Real nghost = pin->GetOrAddReal("parthenon/mesh", "nghost", 3);
+
+  int il, iu, jl, ju, kl, ku;
+  il = ib.s - nghost, iu = ib.e + nghost;
+  jl = jb.s - nghost, ju = jb.e + nghost;
+  kl = kb.s, ku = kb.e;
 
   // Top Right
   Real rho_tr = pin->GetOrAddReal("problem/riemann_2d", "rho_tr", 1.5);

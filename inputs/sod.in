@@ -40,7 +40,7 @@ ix3_bc = periodic
 ox3_bc = periodic
 
 <partheon/meshblock>
-nx1 = 16
+nx1 = 128
 nx2 = 1
 nx3 = 1
 
@@ -48,6 +48,7 @@ nx3 = 1
 file_type = hdf5
 dt = 0.05
 variables = prim
+id = prim_sod
 
 <parthenon/time>
 integrator = rk3

@@ -7,42 +7,42 @@ problem_id = turbulence
 
 <parthenon/output1>
 file_type  = hst        # History data dump
-dt         = -0.05       # time increment between outputs
+dt         = 0.05       # time increment between outputs
 
 <parthenon/output2>
 file_type  = hdf5       # Binary data dump
 variables  = prim,acc   # variables to be output
 dt         = 0.1        # time increment between outputs
-id         = prim_turbulence_512
+id         = prim_turb_256
 single_precision_output = true
 
 <parthenon/output3>
 file_type  = rst        # Binary data dump
-dt         = -1.0        # time increment between outputs
+dt         = 1.0        # time increment between outputs
 id         = restart
 
 <parthenon/time>
-cfl = 0.1               # The Courant, Friedrichs, & Lewy (CFL) Number
-nlim       = 100000     # cycle limit
-tlim       = 0.1        # time limit
+cfl = 0.3               # The Courant, Friedrichs, & Lewy (CFL) Number
+nlim       = -1         # cycle limit
+tlim       = 10.0       # time limit
 integrator  = rk3       # time integration algorithm
 ncycle_out_mesh = -500  # print mesh structure every 500 cyles and on refinement
 
 <parthenon/mesh>
 nghost     = 3
-nx1        = 512        # Number of zones in X1-direction
+nx1        = 256        # Number of zones in X1-direction
 x1min      = 0.0        # minimum value of X1
 x1max      = 1.0        # maximum value of X1
 ix1_bc     = periodic   # inner-X1 boundary flag
 ox1_bc     = periodic   # outer-X1 boundary flag
 
-nx2        = 512        # Number of zones in X2-direction
+nx2        = 256        # Number of zones in X2-direction
 x2min      = 0.0        # minimum value of X2
 x2max      = 1.0        # maximum value of X2
 ix2_bc     = periodic   # inner-X2 boundary flag
 ox2_bc     = periodic   # outer-X2 boundary flag
 
-nx3        = 512        # Number of zones in X3-direction
+nx3        = 256       # Number of zones in X3-direction
 x3min      = 0.0        # minimum value of X3
 x3max      = 1.0        # maximum value of X3
 ix3_bc     = periodic   # inner-X3 boundary flag
@@ -70,7 +70,7 @@ kpeak        = 2.0      # characteristic wavenumber
 corr_time    = 1.0      # autocorrelation time of the OU forcing process
 rseed        = 20190729 # random seed of the OU forcing process
 sol_weight   = 1.0      # solenoidal weight of the acceleration field
-accel_rms    = 0.5      # root mean square value of the acceleration field
+accel_rms    = 0.2      # root mean square value of the acceleration field
 num_modes    = 30       # number of wavemodes
 
 <modes>

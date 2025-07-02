@@ -38,7 +38,7 @@ nx3 = 1
 <parthenon/time>
 integrator = rk3
 cfl = 0.1
-tlim = 5.0
+tlim = 1.0
 nlim = -1
 perf_cycle_offset = 2 # number of inital cycles not to be included in perf calc
 
