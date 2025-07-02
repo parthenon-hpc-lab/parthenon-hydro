@@ -25,7 +25,7 @@
 
 // Athena headers
 #include "../../main.hpp"
-#include "weno_helpers.hpp"
+// #include "weno_helpers.hpp"
 
 using parthenon::ParArray4D;
 using parthenon::Real;
@@ -41,44 +41,35 @@ struct Reconstruct<Fluid::mhd, Reconstruction::weno5> {
         const int iu, const int ivx, const parthenon::VariablePack<Real> &q,
         VariableFluxPack<Real> &cons, const AdiabaticMHDEOS &eos) {
 
-    // idk why NHYDRO loads as 5 but it gets ivy, ivz, iBx, iBy, iBz correct
-    int ivy = IV1 + ((ivx - IV1) + 1) % 3;
-    int ivz = IV1 + ((ivx - IV1) + 2) % 3;
+    const int ivy = IV1 + ((ivx - IV1) + 1) % 3;
+    const int ivz = IV1 + ((ivx - IV1) + 2) % 3;
     const int iBx = ivx - 1 + NHYDRO;
     const int iBy = ivy - 1 + NHYDRO;
     const int iBz = ivz - 1 + NHYDRO;
 
-    // now I need to switch to 8
-    const int NHYDRO = 8;
+    constexpr int NMHD = 8;
 
-    Real alpha[NHYDRO];
-
-    for (int mmm = 0; mmm < NHYDRO; ++mmm) {
-      alpha[mmm] = 1e-15;
-    }
-
-    Real gamma;
-    gamma = eos.GetGamma();
-    Real gm1 = gamma - 1.0;
-    Real igm1 = 1.0 / gm1;
+    const auto gamma = eos.GetGamma();
+    const auto gm1 = gamma - 1.0;
+    const auto igm1 = 1.0 / gm1;
     
     parthenon::par_for_inner(member, il, iu, [&](const int i) {
-    
-      Real w0[(NHYDRO)], w1[(NHYDRO)], w2[(NHYDRO)], w3[(NHYDRO)], w4[(NHYDRO)], w5[(NHYDRO)];
-      Real q0[(NHYDRO)], q1[(NHYDRO)], q2[(NHYDRO)], q3[(NHYDRO)], q4[(NHYDRO)], q5[(NHYDRO)];
-      Real f0[(NHYDRO)], f1[(NHYDRO)], f2[(NHYDRO)], f3[(NHYDRO)], f4[(NHYDRO)], f5[(NHYDRO)];
-      Real rr[(NHYDRO)][(NHYDRO)], ru[(NHYDRO)][(NHYDRO)], lu[(NHYDRO)][(NHYDRO)], lq[(NHYDRO)][(NHYDRO)];
-      Real vj0[NHYDRO], vj1[NHYDRO], vj2[NHYDRO], vj3[NHYDRO], vj4[NHYDRO], vj5[NHYDRO];
-      Real gj0[NHYDRO], gj1[NHYDRO], gj2[NHYDRO], gj3[NHYDRO], gj4[NHYDRO], gj5[NHYDRO];
-      Real g_p0[NHYDRO], g_p1[NHYDRO], g_p2[NHYDRO], g_p3[NHYDRO], g_p4[NHYDRO], g_p5[NHYDRO];
-      Real g_m0[NHYDRO], g_m1[NHYDRO], g_m2[NHYDRO], g_m3[NHYDRO], g_m4[NHYDRO], g_m5[NHYDRO];
-      Real weno1[NHYDRO], weno2[NHYDRO], weno_sum[NHYDRO];
-      Real f_half[NHYDRO]; 
    
+      Real w0[(NMHD)], w1[(NMHD)], w2[(NMHD)], w3[(NMHD)], w4[(NMHD)], w5[(NMHD)];
+      Real q0[(NMHD)], q1[(NMHD)], q2[(NMHD)], q3[(NMHD)], q4[(NMHD)], q5[(NMHD)];
+      Real f0[(NMHD)], f1[(NMHD)], f2[(NMHD)], f3[(NMHD)], f4[(NMHD)], f5[(NMHD)];
+      Real rr[(NMHD)][(NMHD)], ru[(NMHD)][(NMHD)], lu[(NMHD)][(NMHD)], lq[(NMHD)][(NMHD)];
+      Real vj0[NMHD], vj1[NMHD], vj2[NMHD], vj3[NMHD], vj4[NMHD], vj5[NMHD];
+      Real gj0[NMHD], gj1[NMHD], gj2[NMHD], gj3[NMHD], gj4[NMHD], gj5[NMHD];
+      Real g_p0[NMHD], g_p1[NMHD], g_p2[NMHD], g_p3[NMHD], g_p4[NMHD], g_p5[NMHD];
+      Real g_m0[NMHD], g_m1[NMHD], g_m2[NMHD], g_m3[NMHD], g_m4[NMHD], g_m5[NMHD];
+      Real weno1[NMHD], weno2[NMHD], weno_sum[NMHD];
+      Real f_half[NMHD];
+
       //--- Step 0.  Load states into local variables:
         
       if (ivx == IV1){
-        w0[IDN] = q(IDN, k, j, i - 3); // not used
+        w0[IDN] = q(IDN, k, j, i - 3); 
         w0[IV1] = q(ivx, k, j, i - 3);
         w0[IV2] = q(ivy, k, j, i - 3);
         w0[IV3] = q(ivz, k, j, i - 3);
@@ -494,8 +485,8 @@ struct Reconstruct<Fluid::mhd, Reconstruction::weno5> {
       Real t2, t3;
 
       if (half_Bnm != 0) {
-          t2 = half_By / half_Bnm;
-          t3 = half_Bz / half_Bnm;
+        t2 = half_By / half_Bnm;
+        t3 = half_Bz / half_Bnm;
       } else {
         t2 = std::sin(M_PI / 4.0);
         t3 = std::cos(M_PI / 4.0);
@@ -530,11 +521,11 @@ struct Reconstruct<Fluid::mhd, Reconstruction::weno5> {
 
       Real alphaf, alphas;
       if (std::abs(cf * cf - cs * cs) <= 1.0e-12) {
-          alphaf = std::sin(std::atan(1.0) / 2.0);
-          alphas = std::cos(std::atan(1.0) / 2.0);
+        alphaf = std::sin(std::atan(1.0) / 2.0);
+        alphas = std::cos(std::atan(1.0) / 2.0);
       } else {
-          alphaf = std::sqrt(std::abs(a2 - cs * cs)) / std::sqrt(std::abs(cf * cf - cs * cs));
-          alphas = std::sqrt(std::abs(cf * cf - a2)) / std::sqrt(std::abs(cf * cf - cs * cs));
+        alphaf = std::sqrt(std::abs(a2 - cs * cs)) / std::sqrt(std::abs(cf * cf - cs * cs));
+        alphas = std::sqrt(std::abs(cf * cf - a2)) / std::sqrt(std::abs(cf * cf - cs * cs));
       }
 
       Real TxN1 = n3 * t2 - n2 * t3; 
@@ -764,7 +755,7 @@ struct Reconstruct<Fluid::mhd, Reconstruction::weno5> {
 
       //--- (c) Project the solution and physical flux into the right eigenvector space:
 
-      for (int ii = 0; ii < NHYDRO; ++ii) {
+      for (int ii = 0; ii < NMHD; ++ii) {
 
         vj0[ii] = 0.0;
         vj1[ii] = 0.0;
@@ -780,7 +771,7 @@ struct Reconstruct<Fluid::mhd, Reconstruction::weno5> {
         gj4[ii] = 0.0;
         gj5[ii] = 0.0;
 
-        for (int jj = 0; jj < NHYDRO; ++jj) {
+        for (int jj = 0; jj < NMHD; ++jj) {
 
           vj0[ii] += lq[ii][jj] * q0[jj];
           vj1[ii] += lq[ii][jj] * q1[jj];
@@ -804,22 +795,56 @@ struct Reconstruct<Fluid::mhd, Reconstruction::weno5> {
       // g^{±}_{j}= 0.5 * (g_j ± α^{m} v_j) where α(m) = max_k | λ^{m} q_k | 
       // is the maximal wave speed of the m^{th} component of characteristic variables over all grid points
 
-      Real aa3  = std::sqrt((gamma * w3[IPR]) / w3[IDN]);
-      Real ca3  = std::sqrt((w3[IB1] * w3[IB1] + w3[IB2] * w3[IB2] + w3[IB3] * w3[IB3]) / w3[IDN]);
-      Real cax3 = std::sqrt((w3[IB1] * w3[IB1]) / w3[IDN]);
-      Real cfx3 = std::sqrt(0.5 * std::abs(aa3 * aa3 + ca3 * ca3 + std::sqrt((aa3 * aa3 + ca3 * ca3) * (aa3 * aa3 + ca3 * ca3) - (4 * aa3 * aa3 * cax3 * cax3))));
-      Real csx3 = std::sqrt(0.5 * std::abs(aa3 * aa3 + ca3 * ca3 - std::sqrt((aa3 * aa3 + ca3 * ca3) * (aa3 * aa3 + ca3 * ca3) - (4 * aa3 * aa3 * cax3 * cax3))));
-      
-      alpha[0] = std::max(alpha[0], std::abs(w3[IV1]       ));
-      alpha[1] = std::max(alpha[1], std::abs(w3[IV1]       ));
-      alpha[2] = std::max(alpha[2], std::abs(w3[IV1] + cax3));
-      alpha[3] = std::max(alpha[3], std::abs(w3[IV1] - cax3));
-      alpha[4] = std::max(alpha[4], std::abs(w3[IV1] + cfx3));
-      alpha[5] = std::max(alpha[5], std::abs(w3[IV1] - cfx3));
-      alpha[6] = std::max(alpha[6], std::abs(w3[IV1] + csx3));
-      alpha[7] = std::max(alpha[7], std::abs(w3[IV1] - csx3));
+      Real aa0 = std::sqrt((gamma * w0[IPR]) / w0[IDN]);
+      Real aa1 = std::sqrt((gamma * w1[IPR]) / w1[IDN]);
+      Real aa2 = std::sqrt((gamma * w2[IPR]) / w2[IDN]);
+      Real aa3 = std::sqrt((gamma * w3[IPR]) / w3[IDN]);
+      Real aa4 = std::sqrt((gamma * w4[IPR]) / w4[IDN]);
+      Real aa5 = std::sqrt((gamma * w5[IPR]) / w5[IDN]);
 
-      for (int iii = 0; iii < NHYDRO; ++iii) {
+      Real ca0 = std::sqrt((w0[IB1] * w0[IB1] + w0[IB2] * w0[IB2] + w0[IB3] * w0[IB3]) / w0[IDN]);
+      Real ca1 = std::sqrt((w1[IB1] * w1[IB1] + w1[IB2] * w1[IB2] + w1[IB3] * w1[IB3]) / w1[IDN]);
+      Real ca2 = std::sqrt((w2[IB1] * w2[IB1] + w2[IB2] * w2[IB2] + w2[IB3] * w2[IB3]) / w2[IDN]);
+      Real ca3 = std::sqrt((w3[IB1] * w3[IB1] + w3[IB2] * w3[IB2] + w3[IB3] * w3[IB3]) / w3[IDN]);
+      Real ca4 = std::sqrt((w4[IB1] * w4[IB1] + w4[IB2] * w4[IB2] + w4[IB3] * w4[IB3]) / w4[IDN]);
+      Real ca5 = std::sqrt((w5[IB1] * w5[IB1] + w5[IB2] * w5[IB2] + w5[IB3] * w5[IB3]) / w5[IDN]);
+
+      Real cax0 = std::sqrt((w0[IB1] * w0[IB1]) / w0[IDN]);
+      Real cax1 = std::sqrt((w1[IB1] * w1[IB1]) / w1[IDN]);
+      Real cax2 = std::sqrt((w2[IB1] * w2[IB1]) / w2[IDN]);
+      Real cax3 = std::sqrt((w3[IB1] * w3[IB1]) / w3[IDN]);
+      Real cax4 = std::sqrt((w4[IB1] * w4[IB1]) / w4[IDN]);
+      Real cax5 = std::sqrt((w5[IB1] * w5[IB1]) / w5[IDN]);
+
+      Real cfx0 = std::sqrt(0.5 * std::abs(aa0 * aa0 + ca0 * ca0 + std::sqrt((aa0 * aa0 + ca0 * ca0) * (aa0 * aa0 + ca0 * ca0) - (4 * aa0 * aa0 * cax0 * cax0))));
+      Real cfx1 = std::sqrt(0.5 * std::abs(aa1 * aa1 + ca1 * ca1 + std::sqrt((aa1 * aa1 + ca1 * ca1) * (aa1 * aa1 + ca1 * ca1) - (4 * aa1 * aa1 * cax1 * cax1))));
+      Real cfx2 = std::sqrt(0.5 * std::abs(aa2 * aa2 + ca2 * ca2 + std::sqrt((aa2 * aa2 + ca2 * ca2) * (aa2 * aa2 + ca2 * ca2) - (4 * aa2 * aa2 * cax2 * cax2))));
+      Real cfx3 = std::sqrt(0.5 * std::abs(aa3 * aa3 + ca3 * ca3 + std::sqrt((aa3 * aa3 + ca3 * ca3) * (aa3 * aa3 + ca3 * ca3) - (4 * aa3 * aa3 * cax3 * cax3))));
+      Real cfx4 = std::sqrt(0.5 * std::abs(aa4 * aa4 + ca4 * ca4 + std::sqrt((aa4 * aa4 + ca4 * ca4) * (aa4 * aa4 + ca4 * ca4) - (4 * aa4 * aa4 * cax4 * cax4))));
+      Real cfx5 = std::sqrt(0.5 * std::abs(aa5 * aa5 + ca5 * ca5 + std::sqrt((aa5 * aa5 + ca5 * ca5) * (aa5 * aa5 + ca5 * ca5) - (4 * aa5 * aa5 * cax5 * cax5))));
+      
+      Real csx0 = std::sqrt(0.5 * std::abs(aa0 * aa0 + ca0 * ca0 - std::sqrt((aa0 * aa0 + ca0 * ca0) * (aa0 * aa0 + ca0 * ca0) - (4 * aa0 * aa0 * cax0 * cax0))));
+      Real csx1 = std::sqrt(0.5 * std::abs(aa1 * aa1 + ca1 * ca1 - std::sqrt((aa1 * aa1 + ca1 * ca1) * (aa1 * aa1 + ca1 * ca1) - (4 * aa1 * aa1 * cax1 * cax1))));
+      Real csx2 = std::sqrt(0.5 * std::abs(aa2 * aa2 + ca2 * ca2 - std::sqrt((aa2 * aa2 + ca2 * ca2) * (aa2 * aa2 + ca2 * ca2) - (4 * aa2 * aa2 * cax2 * cax2))));
+      Real csx3 = std::sqrt(0.5 * std::abs(aa3 * aa3 + ca3 * ca3 - std::sqrt((aa3 * aa3 + ca3 * ca3) * (aa3 * aa3 + ca3 * ca3) - (4 * aa3 * aa3 * cax3 * cax3))));
+      Real csx4 = std::sqrt(0.5 * std::abs(aa4 * aa4 + ca4 * ca4 - std::sqrt((aa4 * aa4 + ca4 * ca4) * (aa4 * aa4 + ca4 * ca4) - (4 * aa4 * aa4 * cax4 * cax4))));
+      Real csx5 = std::sqrt(0.5 * std::abs(aa5 * aa5 + ca5 * ca5 - std::sqrt((aa5 * aa5 + ca5 * ca5) * (aa5 * aa5 + ca5 * ca5) - (4 * aa5 * aa5 * cax5 * cax5))));
+
+      Real em = 1.0e-15;
+
+      Real max_eig_1 = std::max({em, std::abs(w0[IV1]),      std::abs(w1[IV1]),      std::abs(w2[IV1]),      std::abs(w3[IV1]),      std::abs(w4[IV1]),      std::abs(w5[IV1])});
+      Real max_eig_2 = std::max({em, std::abs(w0[IV1]),      std::abs(w1[IV1]),      std::abs(w2[IV1]),      std::abs(w3[IV1]),      std::abs(w4[IV1]),      std::abs(w5[IV1])});
+      Real max_eig_3 = std::max({em, std::abs(w0[IV1]+cax0), std::abs(w1[IV1]+cax1), std::abs(w2[IV1]+cax2), std::abs(w3[IV1]+cax3), std::abs(w4[IV1]+cax4), std::abs(w5[IV1]+cax5)});
+      Real max_eig_4 = std::max({em, std::abs(w0[IV1]-cax0), std::abs(w1[IV1]-cax1), std::abs(w2[IV1]-cax2), std::abs(w3[IV1]-cax3), std::abs(w4[IV1]-cax4), std::abs(w5[IV1]-cax5)});
+      Real max_eig_5 = std::max({em, std::abs(w0[IV1]+cfx0), std::abs(w1[IV1]+cfx1), std::abs(w2[IV1]+cfx2), std::abs(w3[IV1]+cfx3), std::abs(w4[IV1]+cfx4), std::abs(w5[IV1]+cfx5)});
+      Real max_eig_6 = std::max({em, std::abs(w0[IV1]-cfx0), std::abs(w1[IV1]-cfx1), std::abs(w2[IV1]-cfx2), std::abs(w3[IV1]-cfx3), std::abs(w4[IV1]-cfx4), std::abs(w5[IV1]-cfx5)});
+      Real max_eig_7 = std::max({em, std::abs(w0[IV1]+csx0), std::abs(w1[IV1]+csx1), std::abs(w2[IV1]+csx2), std::abs(w3[IV1]+csx3), std::abs(w4[IV1]+csx4), std::abs(w5[IV1]+csx5)});
+      Real max_eig_8 = std::max({em, std::abs(w0[IV1]-csx0), std::abs(w1[IV1]-csx1), std::abs(w2[IV1]-csx2), std::abs(w3[IV1]-csx3), std::abs(w4[IV1]-csx4), std::abs(w5[IV1]-csx5)});
+
+      Real alpha[NMHD] = {max_eig_1, max_eig_2, max_eig_3, max_eig_4, max_eig_5, max_eig_6, max_eig_7, max_eig_8};
+
+
+      for (int iii = 0; iii < NMHD; ++iii) {
 
         g_p0[iii] = 0.5 * (gj0[iii] + 1.1 * alpha[iii] * vj0[iii]);
         g_p1[iii] = 0.5 * (gj1[iii] + 1.1 * alpha[iii] * vj1[iii]);  
@@ -842,10 +867,10 @@ struct Reconstruct<Fluid::mhd, Reconstruction::weno5> {
 
       Real epsilon = 1E-6;
 
-      // TODO(wendelnc) Make WENO3 a function in weno_helpers.hpp
+      // TODO(wendelnc) Make WENO5 a function in weno_helpers.hpp
 
       // gp0,gp1,gp2,gp3,gp4 are vmm,vm,v,vp,vpp
-      for (int jjj = 0; jjj < NHYDRO; ++jjj) {     
+      for (int jjj = 0; jjj < NMHD; ++jjj) {     
 
         Real q_im2 = g_p0[jjj];
         Real q_im1 = g_p1[jjj];
@@ -881,7 +906,7 @@ struct Reconstruct<Fluid::mhd, Reconstruction::weno5> {
       }
 
       // gm5,gm4,gm3,gm2,gm1 are vmm,vm,v,vp,vpp
-      for (int jjjj = 0; jjjj < NHYDRO; ++jjjj) {
+      for (int jjjj = 0; jjjj < NMHD; ++jjjj) {
 
         Real q_im2 = g_m5[jjjj];
         Real q_im1 = g_m4[jjjj];
@@ -920,9 +945,9 @@ struct Reconstruct<Fluid::mhd, Reconstruction::weno5> {
 
       //--- (f) Project the numerical flux back to the conserved variables
         
-      for (int iiii = 0; iiii < NHYDRO; ++iiii) {
+      for (int iiii = 0; iiii < NMHD; ++iiii) {
         f_half[iiii] = 0.0;
-        for (int jjjjj = 0; jjjjj < NHYDRO; ++jjjjj) {
+        for (int jjjjj = 0; jjjjj < NMHD; ++jjjjj) {
           f_half[iiii] += rr[iiii][jjjjj] * weno_sum[jjjjj];
         }
       }
