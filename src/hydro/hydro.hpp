@@ -28,16 +28,14 @@ TaskStatus AddSplitSourcesFirstOrder(MeshData<Real> *md, const SimTime &tm);
 
 using SourceFun_t =
     std::function<void(MeshData<Real> *md, const SimTime &tm, const Real dt)>;
-// using EstimateTimestepFun_t = std::function<Real(MeshData<Real> *md)>;
-using InitPackageDataFun_t =
-    std::function<void(ParameterInput *pin, StateDescriptor *pkg)>;
+using EstimateTimestepFun_t = std::function<Real(MeshData<Real> *md)>;
 
 extern SourceFun_t ProblemSourceFirstOrder;
-// extern SourceFun_t ProblemSourceUnsplit;
-// extern SourceFun_t ProblemSourceStrangSplit;
-// extern EstimateTimestepFun_t ProblemEstimateTimestep;
+extern SourceFun_t ProblemSourceUnsplit;
+extern SourceFun_t ProblemSourceStrangSplit;
+extern EstimateTimestepFun_t ProblemEstimateTimestep;
 extern InitPackageDataFun_t ProblemInitPackageData;
-// extern std::function<AmrTag(MeshBlockData<Real> *mbd)> ProblemCheckRefinementBlock;
+extern std::function<AmrTag(MeshBlockData<Real> *mbd)> ProblemCheckRefinementBlock;
 
 template <Fluid fluid, Reconstruction recon>
 TaskStatus CalculateFluxes(std::shared_ptr<MeshData<Real>> &md);

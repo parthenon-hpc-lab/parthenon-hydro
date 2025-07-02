@@ -147,6 +147,17 @@ std::shared_ptr<StateDescriptor> Initialize(ParameterInput *pin) {
   pkg->AddParam<>("fluid", fluid);
   pkg->AddParam<>("nhydro", nhydro);
 
+  // hyperbolic timestep constraint
+  pkg->AddParam<Real>("dt_hyp", std::numeric_limits<Real>::max(),
+                      Params::Mutability::Mutable);
+
+  // Use hyperbolic timestep constraint by default
+  bool calc_dt_hyp = true;
+  pkg->AddParam<>("calc_dt_hyp", calc_dt_hyp);
+
+  const auto max_dt = pin->GetOrAddReal("hydro", "max_dt", -1.0);
+  pkg->AddParam<>("max_dt", max_dt);
+
   const auto recon_str = pin->GetOrAddString("hydro", "reconstruction", "weno3");
   auto recon = Reconstruction::undefined;
 
@@ -327,27 +338,24 @@ std::shared_ptr<StateDescriptor> Initialize(ParameterInput *pin) {
 }
 
 template <Fluid fluid>
-Real EstimateTimestep(MeshData<Real> *md) {
+Real EstimateHyperbolicTimestep(MeshData<Real> *md) {
   // get to package via first block in Meshdata (which exists by construction)
-  auto pmb = md->GetBlockData(0)->GetBlockPointer();
-  auto hydro_pkg = pmb->packages.Get("Hydro");
+  auto hydro_pkg = md->GetBlockData(0)->GetBlockPointer()->packages.Get("Hydro");
   const auto &cfl_hyp = hydro_pkg->Param<Real>("cfl");
   const auto &prim_pack = md->PackVariables(std::vector<std::string>{"prim"});
-  const auto &eos =
+  const auto &eos_ =
       hydro_pkg->Param<typename std::conditional<fluid == Fluid::euler, AdiabaticHydroEOS,
                                                  AdiabaticMHDEOS>::type>("eos");
-  
-  IndexRange ib = pmb->cellbounds.GetBoundsI(IndexDomain::interior);
-  IndexRange jb = pmb->cellbounds.GetBoundsJ(IndexDomain::interior);
-  IndexRange kb = pmb->cellbounds.GetBoundsK(IndexDomain::interior);
+
+  IndexRange ib = md->GetBlockData(0)->GetBoundsI(IndexDomain::interior);
+  IndexRange jb = md->GetBlockData(0)->GetBoundsJ(IndexDomain::interior);
+  IndexRange kb = md->GetBlockData(0)->GetBoundsK(IndexDomain::interior);
 
   Real min_dt_hyperbolic = std::numeric_limits<Real>::max();
 
-  bool nx1 = prim_pack.GetDim(2) > 1;
-  bool nx2 = prim_pack.GetDim(2) > 1;
-  bool nx3 = prim_pack.GetDim(3) > 1;
+  const auto ndim_ = prim_pack.GetNdim();
   Kokkos::parallel_reduce(
-      "EstimateTimestep",
+      "EstimateHyperbolicTimestep",
       Kokkos::MDRangePolicy<Kokkos::Rank<4>>(
           DevExecSpace(), {0, kb.s, jb.s, ib.s},
           {prim_pack.GetDim(5), kb.e + 1, jb.e + 1, ib.e + 1},
@@ -355,6 +363,11 @@ Real EstimateTimestep(MeshData<Real> *md) {
       KOKKOS_LAMBDA(const int b, const int k, const int j, const int i, Real &min_dt) {
         const auto &prim = prim_pack(b);
         const auto &coords = prim_pack.GetCoords(b);
+        // Need to reference variables here so that they are properly caught by
+        // nvcc, which cannot determine captured variables only used within constexpr if.
+        const auto &ndim = ndim_;
+        const auto &eos = eos_;
+
         Real w[(NHYDRO)];
         w[IDN] = prim(IDN, k, j, i);
         w[IV1] = prim(IV1, k, j, i);
@@ -362,22 +375,20 @@ Real EstimateTimestep(MeshData<Real> *md) {
         w[IV3] = prim(IV3, k, j, i);
         w[IPR] = prim(IPR, k, j, i);
         Real lambda_max_x, lambda_max_y, lambda_max_z;
-        (void)eos;
-        (void)nx2;
-        (void)nx3;
         if constexpr (fluid == Fluid::euler) {
           lambda_max_x = eos.SoundSpeed(w);
           lambda_max_y = lambda_max_x;
           lambda_max_z = lambda_max_x;
+
         } else if constexpr (fluid == Fluid::mhd) {
           lambda_max_x = eos.FastMagnetosonicSpeed(
               w[IDN], w[IPR], prim(IB1, k, j, i), prim(IB2, k, j, i), prim(IB3, k, j, i));
-          if (nx2 > 1) {
+          if (ndim > 1) {
             lambda_max_y =
                 eos.FastMagnetosonicSpeed(w[IDN], w[IPR], prim(IB2, k, j, i),
                                           prim(IB3, k, j, i), prim(IB1, k, j, i));
           }
-          if (nx3 > 2) {
+          if (ndim > 2) {
             lambda_max_z =
                 eos.FastMagnetosonicSpeed(w[IDN], w[IPR], prim(IB3, k, j, i),
                                           prim(IB1, k, j, i), prim(IB2, k, j, i));
@@ -385,18 +396,56 @@ Real EstimateTimestep(MeshData<Real> *md) {
         } else {
           PARTHENON_FAIL("Unknown fluid in EstimateTimestep");
         }
-
         min_dt = fmin(min_dt, coords.Dxc<1>(k, j, i) / (fabs(w[IV1]) + lambda_max_x));
-        if (nx2) {
+        if (ndim > 1) {
           min_dt = fmin(min_dt, coords.Dxc<2>(k, j, i) / (fabs(w[IV2]) + lambda_max_y));
         }
-        if (nx3) {
+        if (ndim > 2) {
           min_dt = fmin(min_dt, coords.Dxc<3>(k, j, i) / (fabs(w[IV3]) + lambda_max_z));
         }
       },
       Kokkos::Min<Real>(min_dt_hyperbolic));
-  
+
+  // TODO(pgrete) THIS WORKAROUND IS NOT THREAD SAFE (though this will only become
+  // relevant once parthenon uses host-multithreading in the driver).
+  // We need to save the the hyperbolic part to recover it later as
+  // the divergence cleaning speed is only limited in relation to the other
+  // hyperbolic signal speeds and not by (potentially more restrictive) diffusive
+  // processes.
+  if constexpr (fluid == Fluid::mhd) {
+    auto dt_hyp_pkg = hydro_pkg->Param<Real>("dt_hyp");
+    if (cfl_hyp * min_dt_hyperbolic < dt_hyp_pkg) {
+      hydro_pkg->UpdateParam("dt_hyp", cfl_hyp * min_dt_hyperbolic);
+    }
+  }
   return cfl_hyp * min_dt_hyperbolic;
+}
+
+// provide the routine that estimates a stable timestep for this package
+template <Fluid fluid>
+Real EstimateTimestep(MeshData<Real> *md) {
+  // get to package via first block in Meshdata (which exists by construction)
+  auto hydro_pkg = md->GetBlockData(0)->GetBlockPointer()->packages.Get("Hydro");
+  auto min_dt = std::numeric_limits<Real>::max();
+  auto dt_hyp = std::numeric_limits<Real>::max();
+
+  const auto calc_dt_hyp = hydro_pkg->Param<bool>("calc_dt_hyp");
+  if (calc_dt_hyp) {
+    dt_hyp = EstimateHyperbolicTimestep<fluid>(md);
+    min_dt = std::min(min_dt, dt_hyp);
+  }
+  
+  if (ProblemEstimateTimestep != nullptr) {
+    min_dt = std::min(min_dt, ProblemEstimateTimestep(md));
+  }
+
+  // maximum user dt
+  const auto max_dt = hydro_pkg->Param<Real>("max_dt");
+  if (max_dt > 0.0) {
+    min_dt = std::min(min_dt, max_dt);
+  }
+
+  return min_dt;
 }
 
 template <Fluid fluid, Reconstruction recon>

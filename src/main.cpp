@@ -15,10 +15,10 @@
 namespace Hydro {
 InitPackageDataFun_t ProblemInitPackageData = nullptr;
 SourceFun_t ProblemSourceFirstOrder = nullptr;
-// SourceFun_t ProblemSourceStrangSplit = nullptr;
-// SourceFun_t ProblemSourceUnsplit = nullptr;
-// EstimateTimestepFun_t ProblemEstimateTimestep = nullptr;
-// std::function<AmrTag(MeshBlockData<Real> *mbd)> ProblemCheckRefinementBlock = nullptr;
+SourceFun_t ProblemSourceStrangSplit = nullptr;
+SourceFun_t ProblemSourceUnsplit = nullptr;
+EstimateTimestepFun_t ProblemEstimateTimestep = nullptr;
+std::function<AmrTag(MeshBlockData<Real> *mbd)> ProblemCheckRefinementBlock = nullptr;
 } // namespace Hydro
 
 int main(int argc, char *argv[]) {
