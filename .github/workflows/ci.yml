@@ -1,18 +1,42 @@
-
 name: github-linux
 
-on: [push, pull_request]
+# This is Parthenon-Hydro's *only* CI workflow. The same jobs run for its
+# own PRs/pushes and when Parthenon calls them as downstream integration tests.
+on:
+  push:
+  pull_request:
+  workflow_call:
+    inputs:
+      hydro_ref:
+        description: 'Parthenon-Hydro revision (e.g. main)'
+        type: string
+        required: false
+        default: ''
+      parthenon_ref:
+        description: 'Optional Parthenon override (e.g. refs/pull/123/merge)'
+        type: string
+        required: false
+        default: ''
+      run_only:
+        description: 'Skip build matrix'
+        type: boolean
+        required: false
+        default: false
 
-# Cancel "duplicated" workflows triggered by pushes to internal
-# branches with associated PRs.
+permissions:
+  contents: read
+
+# Use a different prefix from the Parthenon caller to avoid a reusable-
+# workflow concurrency collision. Superseded PR runs are canceled.
 concurrency:
-  group: ${{ github.ref }}-${{ github.head_ref }}-github-linux
+  group: hydro-ci-${{ github.repository }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   build-host:
-    continue-on-error: true
+    if: ${{ !inputs.run_only }}
     strategy:
+      fail-fast: false
       matrix:
         cxx: ['g++', 'clang++-20']
         cmake_build_type: ['Release', 'Debug']
@@ -29,9 +53,35 @@ jobs:
     env:
       CMAKE_GENERATOR: Ninja
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Parthenon-Hydro
+        uses: actions/checkout@v4
         with:
-          submodules: 'true'
+          repository: parthenon-hpc-lab/parthenon-hydro
+          ref: ${{ inputs.hydro_ref || github.ref }}
+          submodules: false
+          persist-credentials: false
+      - name: Checkout pinned dependencies
+        env:
+          PARTHENON_REF: ${{ inputs.parthenon_ref }}
+        run: |
+          git submodule update --init external/Kokkos
+          if [ -z "$PARTHENON_REF" ]; then
+            git submodule update --init external/parthenon
+          fi
+      - name: Checkout candidate Parthenon
+        if: ${{ inputs.parthenon_ref != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: parthenon-hpc-lab/parthenon
+          ref: ${{ inputs.parthenon_ref }}
+          path: external/parthenon
+          submodules: recursive
+          persist-credentials: false
+      - name: Show exact revisions
+        run: |
+          echo "Hydro: $(git rev-parse HEAD)"
+          echo "Parthenon: $(git -C external/parthenon rev-parse HEAD)"
+          echo "Kokkos: $(git -C external/Kokkos rev-parse HEAD)"
       - name: CMake
         run: |
           cmake -B builddir \
@@ -40,11 +90,11 @@ jobs:
             -DMACHINE_CFG=${PWD}/external/parthenon/cmake/machinecfg/GitHubActions.cmake \
             -DMACHINE_VARIANT=${{ matrix.device }}_${{ matrix.parallel }}
       - name: Build
-        run: |
-          cmake --build builddir --parallel 2
+        run: cmake --build builddir --parallel 2
+
   test-host:
-    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         parallel: ['serial', 'mpi']
     runs-on: ubuntu-latest
@@ -53,9 +103,35 @@ jobs:
     env:
       CMAKE_GENERATOR: Ninja
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Parthenon-Hydro
+        uses: actions/checkout@v4
         with:
-          submodules: 'true'
+          repository: parthenon-hpc-lab/parthenon-hydro
+          ref: ${{ inputs.hydro_ref || github.ref }}
+          submodules: false
+          persist-credentials: false
+      - name: Checkout pinned dependencies
+        env:
+          PARTHENON_REF: ${{ inputs.parthenon_ref }}
+        run: |
+          git submodule update --init external/Kokkos
+          if [ -z "$PARTHENON_REF" ]; then
+            git submodule update --init external/parthenon
+          fi
+      - name: Checkout candidate Parthenon
+        if: ${{ inputs.parthenon_ref != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: parthenon-hpc-lab/parthenon
+          ref: ${{ inputs.parthenon_ref }}
+          path: external/parthenon
+          submodules: recursive
+          persist-credentials: false
+      - name: Show exact revisions
+        run: |
+          echo "Hydro: $(git rev-parse HEAD)"
+          echo "Parthenon: $(git -C external/parthenon rev-parse HEAD)"
+          echo "Kokkos: $(git -C external/Kokkos rev-parse HEAD)"
       - name: CMake
         run: |
           cmake -B builddir \
@@ -64,7 +140,7 @@ jobs:
             -DMACHINE_CFG=${PWD}/external/parthenon/cmake/machinecfg/GitHubActions.cmake \
             -DMACHINE_VARIANT=host_${{ matrix.parallel }} \
             -DNUM_MPI_PROC_TESTING=2
-      - name: Build
+      - name: Build and test
         run: |
           cmake --build builddir --parallel 2
           cd builddir
