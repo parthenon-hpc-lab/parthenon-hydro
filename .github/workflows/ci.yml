@@ -4,6 +4,7 @@ name: github-linux
 # own PRs/pushes and when Parthenon calls them as downstream integration tests.
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_call:
     inputs:
