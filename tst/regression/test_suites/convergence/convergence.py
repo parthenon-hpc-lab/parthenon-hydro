@@ -78,6 +78,7 @@ class TestCase(utils.test_case.TestCaseAbs):
             "parthenon/meshblock/nx3=%d" % res,
             "parthenon/time/integrator=%s" % integrator,
             "parthenon/time/nlim=300", # safety measure to not run to infty
+            "problem/linear_wave/compute_error=true", # required for calc conv
         ]
 
         return parameters

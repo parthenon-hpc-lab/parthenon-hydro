@@ -9,7 +9,7 @@ problem = 3D Hydro linear wave convergence
 problem_id = linear_wave
 
 <problem/linear_wave>
-compute_error = true  # when 'true' outputs L1 error compared to initial data
+compute_error = false # when 'true' outputs L1 error compared to initial data
 wave_flag = 0         # Wave family number (0 - 4 for adiabatic hydro)
 amp       = 1.0e-6    # Wave Amplitude
 vflow     = 0.0       # background flow velocity
@@ -36,6 +36,8 @@ x3min = 0.0
 x3max = 1.5
 ix3_bc = periodic
 ox3_bc = periodic
+
+minimum_number_of_teams_for_boundary_kernel = 256
 
 <parthenon/meshblock>
 nx1=16
